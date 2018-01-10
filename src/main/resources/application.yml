@@ -8,10 +8,22 @@ spring:
     url: jdbc:mysql://127.0.0.1:3306/computer?characterEncoding=utf-8&useSSL=false
     username: root
     password:
+    initialSize: 20
+    maxActive: 50
+    minIdle: 10
+    maxWait: 10
+    defaultAutoCommit: true
+    minEvictableIdleTimeMillis: 3600000
+    testWhileIdle: true
+    validationQuery: SELECT 1 FROM information
+    type: com.alibaba.druid.pool.DruidDataSource
+
 logging:
   level:
     com.nsb.dao: debug
-  root: Info
+
+password:
+  salt: langxysdafaqj23ou89ZXcj@#$@#$#@KJdjklj;D../dSF.,
 
 
 

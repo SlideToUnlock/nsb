@@ -32,7 +32,7 @@ public class ManageComputerController {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
         }
         if (macs == null || roomId == null){
-            return ServerResponse.createByErrorMessage("参数错误");
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(),ResponseCode.ARGUMENT_ERROR.getDesc());
         }
         return iManageComputerService.distribution(macs, roomId);
     }

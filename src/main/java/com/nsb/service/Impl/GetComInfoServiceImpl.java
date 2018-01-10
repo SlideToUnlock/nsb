@@ -32,7 +32,7 @@ public class GetComInfoServiceImpl implements IGetComInfoService{
         if (StringUtils.isNotBlank(roomId)){
             int rowCount = informationMapper.checkRoomId(roomId);
             if (rowCount == 0){
-                return ServerResponse.createBySuccess("没有当前机房");
+                return ServerResponse.createByErrorMessage("当前机房不存在");
             }
         }
         List<Information> informationList = informationMapper.getComInfo(StringUtils.isBlank(roomId)?null:roomId);

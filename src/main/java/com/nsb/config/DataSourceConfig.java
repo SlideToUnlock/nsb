@@ -28,7 +28,6 @@ import java.io.IOException;
  */
 @Configuration
 @ConfigurationProperties(prefix = "spring.datasource")
-@PropertySource("classpath:druid.properties")
 @MapperScan(basePackages = "com.nsb.dao")
 public class DataSourceConfig {
 
@@ -38,11 +37,14 @@ public class DataSourceConfig {
     private String url;
     private String username;
     private String password;
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(){
-        return new PropertySourcesPlaceholderConfigurer();
-    }
+    private int initialSize;
+    private int maxActive;
+    private int minIdle;
+    private int maxWait;
+    private boolean defaultAutoCommit;
+    private int minEvictableIdleTimeMillis;
+    private boolean testWhileIdle;
+    private String validationQuery;
 
     public String getDriverClassName() {
         return driverClassName;
@@ -76,39 +78,85 @@ public class DataSourceConfig {
         this.password = password;
     }
 
-    @Value("${druid.initialSize}")
-    private int initialSize;
+    public int getInitialSize() {
+        return initialSize;
+    }
 
-    @Value("${druid.maxActive}")
-    private int maxActive;
+    public void setInitialSize(int initialSize) {
+        this.initialSize = initialSize;
+    }
 
-    @Value("${druid.maxWait}")
-    private int maxWait;
+    public int getMaxActive() {
+        return maxActive;
+    }
 
-    @Value("${druid.minIdle}")
-    private int minIdle;
+    public void setMaxActive(int maxActive) {
+        this.maxActive = maxActive;
+    }
 
-    @Value("${druid.defaultAutoCommit}")
-    private boolean defaultAutoCommit;
+    public int getMinIdle() {
+        return minIdle;
+    }
 
-    @Value("${druid.minEvictableIdleTimeMillis}")
-    private int minEvictableIdleTimeMillis;
+    public void setMinIdle(int minIdle) {
+        this.minIdle = minIdle;
+    }
+
+    public int getMaxWait() {
+        return maxWait;
+    }
+
+    public void setMaxWait(int maxWait) {
+        this.maxWait = maxWait;
+    }
+
+    public boolean isDefaultAutoCommit() {
+        return defaultAutoCommit;
+    }
+
+    public void setDefaultAutoCommit(boolean defaultAutoCommit) {
+        this.defaultAutoCommit = defaultAutoCommit;
+    }
+
+    public int getMinEvictableIdleTimeMillis() {
+        return minEvictableIdleTimeMillis;
+    }
+
+    public void setMinEvictableIdleTimeMillis(int minEvictableIdleTimeMillis) {
+        this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
+    }
+
+    public boolean isTestWhileIdle() {
+        return testWhileIdle;
+    }
+
+    public void setTestWhileIdle(boolean testWhileIdle) {
+        this.testWhileIdle = testWhileIdle;
+    }
+
+    public String getValidationQuery() {
+        return validationQuery;
+    }
+
+    public void setValidationQuery(String validationQuery) {
+        this.validationQuery = validationQuery;
+    }
 
     @Bean(name = "dataSource")
     public DruidDataSource druidDataSource(){
         DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setDriverClassName(this.getDriverClassName());
-        dataSource.setUrl(this.getUrl());
-        dataSource.setUsername(this.getUsername());
-        dataSource.setPassword(this.getPassword());
-        dataSource.setInitialSize(initialSize);
-        dataSource.setMaxActive(maxActive);
-        dataSource.setMaxWait(maxWait);
-        dataSource.setMinIdle(minIdle);
-        dataSource.setDefaultAutoCommit(defaultAutoCommit);
-        dataSource.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis);
-        dataSource.setTestWhileIdle(true);
-        dataSource.setValidationQuery("SELECT 1 FROM information");
+        dataSource.setDriverClassName(getDriverClassName());
+        dataSource.setUrl(getUrl());
+        dataSource.setUsername(getUsername());
+        dataSource.setPassword(getPassword());
+        dataSource.setInitialSize(getInitialSize());
+        dataSource.setMaxActive(getMaxActive());
+        dataSource.setMaxWait(getMaxWait());
+        dataSource.setMinIdle(getMinIdle());
+        dataSource.setDefaultAutoCommit(isDefaultAutoCommit());
+        dataSource.setMinEvictableIdleTimeMillis(getMinEvictableIdleTimeMillis());
+        dataSource.setTestWhileIdle(isTestWhileIdle());
+        dataSource.setValidationQuery(getValidationQuery());
         logger.info("dataSource加载完成", dataSource);
         return dataSource;
     }
@@ -123,20 +171,7 @@ public class DataSourceConfig {
         return sqlSessionFactoryBean;
     }
 
-    @Bean
-    public ServletRegistrationBean druidServlet() {
-
-        ServletRegistrationBean reg = new ServletRegistrationBean();
-        reg.setServlet(new StatViewServlet());
-        reg.addUrlMappings("/druid/*");
-        reg.addInitParameter("allow", "127.0.0.1");
-        reg.addInitParameter("loginUsername", "bhz");
-        reg.addInitParameter("loginPassword", "bhz");
-        logger.info(" druid console manager init : {} ", reg);
-        logger.info("druid连接池图形界面配置完成", reg);
-        return reg;
-    }
-    @Bean
+    @Bean(name = "filterRegistrationBean")
     public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
         filterRegistrationBean.setFilter(new WebStatFilter());
@@ -146,7 +181,7 @@ public class DataSourceConfig {
         return filterRegistrationBean;
     }
 
-    @Bean
+    @Bean(name = "transactionManager")
     public PlatformTransactionManager transactionManager() throws Exception {
         DataSourceTransactionManager txManager = new DataSourceTransactionManager();
         txManager.setDataSource(this.druidDataSource());

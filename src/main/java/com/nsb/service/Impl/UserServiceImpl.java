@@ -59,11 +59,12 @@ public class UserServiceImpl implements IUserService {
     }
 
     public ServerResponse delUser(String username){
+
         int rowCount = userMapper.checkUsername(username);
         if (rowCount > 0){
             userMapper.deleteUser(username);
             return ServerResponse.createBySuccessMessage("删除用户成功");
         }
-        return ServerResponse.createByErrorMessage("无当前用户，无法删除");
+        return ServerResponse.createByErrorMessage("删除用户失败");
     }
 }

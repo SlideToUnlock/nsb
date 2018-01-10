@@ -1,6 +1,6 @@
 package com.nsb.util;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 
 import java.security.MessageDigest;
@@ -8,11 +8,19 @@ import java.security.MessageDigest;
 /**
  * Created by geely
  */
-@PropertySource("classpath:druid.properties")
+@ConfigurationProperties(prefix = "password")
+@PropertySource("classpath:generator.properties")
 public class MD5Util {
 
-    @Value("${password.salt}")
-    private static String passwordSalt;
+    private static String salt;
+
+    public static String getSalt() {
+        return salt;
+    }
+
+    public static void setSalt(String salt) {
+        MD5Util.salt = salt;
+    }
 
     public static String[] getHexDigits() {
         return hexDigits;
@@ -57,7 +65,7 @@ public class MD5Util {
     }
 
     public static String MD5EncodeUtf8(String origin) {
-        origin = origin + passwordSalt;
+        origin = origin + getSalt();
         return MD5Encode(origin, "utf-8");
     }
 

@@ -23,9 +23,6 @@ public class UserController {
     @Autowired
     private IUserService iUserService;
 
-    @Autowired
-    private UserMapper userMapper;
-
     @RequestMapping("/login")
     public ServerResponse login(HttpSession session, String username, String password){
         ServerResponse<User> response = iUserService.login(username, password);
@@ -48,7 +45,7 @@ public class UserController {
             return ServerResponse.createByErrorMessage("请退出当前登录");
         }
         if (username == null || answer == null || passwordNew == null){
-            return ServerResponse.createByErrorMessage("参数错误");
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(),ResponseCode.ARGUMENT_ERROR.getDesc());
         }
         return iUserService.forgetPassword(username, answer, passwordNew);
     }
@@ -69,7 +66,7 @@ public class UserController {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
         }
         if (userItem.getRole() == Const.Role.ROLE_CUSTOMER){
-            return ServerResponse.createByErrorMessage("不是管理员用户,请联系管理员");
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
         }
         return iUserService.addUser(user);
     }
@@ -77,11 +74,14 @@ public class UserController {
     @RequestMapping("/del_user")
     public ServerResponse delUser(HttpSession session, String username){
         User userItem = (User) session.getAttribute(Const.USER);
+        if (userItem.getUsername() == username){
+            return ServerResponse.createBySuccessMessage("无法删除自己");
+        }
         if (userItem == null){
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
         }
         if (userItem.getRole() == Const.Role.ROLE_CUSTOMER){
-            return ServerResponse.createByErrorMessage("不是管理员用户,请联系管理员");
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
         }
         return iUserService.delUser(username);
     }

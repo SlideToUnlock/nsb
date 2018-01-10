@@ -15,7 +15,7 @@ public class Const {
 
     public interface Command{
         String SHUTDOWN = "shutdown";
-        String GETPROCESS = "getProcess";
+        String GET_PROCESS = "getProcess";
     }
 
     public interface Role{
