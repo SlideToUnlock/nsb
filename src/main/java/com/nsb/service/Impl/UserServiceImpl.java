@@ -67,4 +67,8 @@ public class UserServiceImpl implements IUserService {
         }
         return ServerResponse.createByErrorMessage("删除用户失败");
     }
+
+    public ServerResponse getUsers(){
+        return ServerResponse.createBySuccess("获取用户列表成功", userMapper.getUsers());
+    }
 }

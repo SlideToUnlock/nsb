@@ -199,4 +199,9 @@
     WHERE username = #{username}
     and role = #{role}
   </select>
+    <select id="getUsers" resultType="com.nsb.pojo.User">
+      SELECT
+      <include refid="Base_Column_List"/>
+      FROM user_info
+    </select>
 </mapper>

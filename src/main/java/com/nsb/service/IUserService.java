@@ -20,4 +20,6 @@ public interface IUserService {
     ServerResponse addUser(User user);
 
     ServerResponse delUser(String username);
+
+    ServerResponse getUsers();
 }

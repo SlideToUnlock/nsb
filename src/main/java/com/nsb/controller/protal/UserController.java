@@ -8,6 +8,7 @@ import com.nsb.pojo.User;
 import com.nsb.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
@@ -23,7 +24,7 @@ public class UserController {
     @Autowired
     private IUserService iUserService;
 
-    @RequestMapping("/login")
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ServerResponse login(HttpSession session, String username, String password){
         ServerResponse<User> response = iUserService.login(username, password);
         if (response.isSuccess()){
@@ -38,7 +39,7 @@ public class UserController {
          return ServerResponse.createBySuccessMessage("退出成功");
     }
 
-    @RequestMapping("/forget_password")
+    @RequestMapping(value = "/forget_password", method = RequestMethod.POST)
     public ServerResponse forgetPassword(HttpSession session, String username, String answer,String passwordNew){
         User user = (User)session.getAttribute(Const.USER);
         if (user != null){
@@ -50,7 +51,7 @@ public class UserController {
         return iUserService.forgetPassword(username, answer, passwordNew);
     }
 
-    @RequestMapping("/update_password")
+    @RequestMapping(value = "/update_password", method = RequestMethod.POST)
     public ServerResponse updatePassword(HttpSession session, String passwordOld, String passwordNew){
         User user = (User) session.getAttribute(Const.USER);
         if (user == null){
@@ -59,7 +60,7 @@ public class UserController {
         return iUserService.updatePassword(user.getUsername(),passwordOld,passwordNew);
     }
 
-    @RequestMapping("/add_user")
+    @RequestMapping(value = "/add_user", method = RequestMethod.POST)
     public ServerResponse addUser(HttpSession session, User user){
         User userItem = (User) session.getAttribute(Const.USER);
         if (userItem == null){
@@ -71,7 +72,7 @@ public class UserController {
         return iUserService.addUser(user);
     }
 
-    @RequestMapping("/del_user")
+    @RequestMapping(value = "/del_user", method = RequestMethod.POST)
     public ServerResponse delUser(HttpSession session, String username){
         User userItem = (User) session.getAttribute(Const.USER);
         if (userItem.getUsername() == username){
@@ -84,5 +85,16 @@ public class UserController {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
         }
         return iUserService.delUser(username);
+    }
+    @RequestMapping(value = "/get_users", method = RequestMethod.POST)
+    public ServerResponse getUsers(HttpSession session){
+        User user = (User)session.getAttribute(Const.USER);
+        if (user == null){
+            return ServerResponse.createByErrorMessage("用户未登录");
+        }
+        if (user.getRole() == Const.Role.ROLE_CUSTOMER){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
+        }
+        return iUserService.getUsers();
     }
 }
