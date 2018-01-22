@@ -1,0 +1,25 @@
+﻿<Window x:Class="RoomManage.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RoomManage"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="673.415" Width="845.4" Icon="computer.ico">
+    <Grid HorizontalAlignment="Left" Width="835">
+        <Label x:Name="IpLab" Content="Ip地址" HorizontalAlignment="Left" Margin="61,54,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="MacLab" Content="物理地址" HorizontalAlignment="Left" Margin="48,85,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="IpBox" Height="23" Margin="111,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="175"/>
+        <TextBox x:Name="MacBox" Height="23" Margin="111,89,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="175"/>
+        <Button x:Name="GetIpBtn" Content="获取" Margin="111,132,0,0" VerticalAlignment="Top" Click="Btn_Get_Info" HorizontalAlignment="Left" Width="93"/>
+        <Button x:Name="SocketCon" Content="链接服务器" HorizontalAlignment="Left" Margin="365,60,0,0" VerticalAlignment="Top" Width="75" Click="SocketCon_Click"/>
+        <Button x:Name="KillProcess" Content="关闭进程" Margin="229,212,549,0" VerticalAlignment="Top" Click="KillProcess_Click"/>
+        <Button x:Name="SocketClose" Content="关闭链接" Margin="365,98,395,0" VerticalAlignment="Top" Click="SocketClose_Click"/>
+        <Button x:Name="SendProcess" Content="发送进程" Margin="365,179,395,0" VerticalAlignment="Top" Click="SendProcess_Click" RenderTransformOrigin="1.666,0.995"/>
+        <TextBox x:Name="Log" HorizontalAlignment="Left" Margin="458,54,0,25" TextWrapping="Wrap" Width="367" IsManipulationEnabled="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+        <ComboBox x:Name="ProcessItemName" HorizontalAlignment="Left" Margin="111,210,0,0" VerticalAlignment="Top" Width="113"/>
+        <Label x:Name="ProcessList" Content="进程" HorizontalAlignment="Left" Margin="61,205,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="SendMsg" Content="发送消息" HorizontalAlignment="Left" Margin="365,137,0,0" VerticalAlignment="Top" Width="75" Click="SendMsg_Click"/>
+
+    </Grid>
+</Window>
