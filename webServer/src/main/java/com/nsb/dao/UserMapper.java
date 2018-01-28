@@ -53,7 +53,7 @@ public interface UserMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(User record);
-
+    User findByUsername(@Param("username")String username);
     User checkLogin(@Param("username")String username, @Param("password")String password);
 
     int checkAnswer(@Param("username")String username, @Param("answer")String answer);

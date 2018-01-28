@@ -3,14 +3,21 @@ package com.nsb.controller.protal;
 import com.nsb.commons.Const;
 import com.nsb.commons.ResponseCode;
 import com.nsb.commons.ServerResponse;
-import com.nsb.dao.UserMapper;
 import com.nsb.pojo.User;
 import com.nsb.service.IUserService;
+import com.nsb.util.JwtUtils;
+import com.nsb.util.MD5Util;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -23,78 +30,89 @@ public class UserController {
 
     @Autowired
     private IUserService iUserService;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private UserDetailsService userDetailsService;
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ServerResponse login(HttpSession session, String username, String password){
-        ServerResponse<User> response = iUserService.login(username, password);
-        if (response.isSuccess()){
-            session.setAttribute(Const.USER, response.getData());
-        }
-        return response;
+    @RequestMapping(value = "/login")
+    public ServerResponse login(String username, String password, HttpSession session) {
+        UsernamePasswordAuthenticationToken upToken = new UsernamePasswordAuthenticationToken(username, MD5Util.MD5EncodeUtf8(password));
+        // Perform the security
+        final Authentication authentication = authenticationManager.authenticate(upToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        final String token = new JwtUtils().generateToken(userDetails);
+        return ServerResponse.createBySuccessToken("登陆成功",token);
     }
 
     @RequestMapping("/logout")
-    public ServerResponse logout(HttpSession session){
-         session.removeAttribute(Const.USER);
-         return ServerResponse.createBySuccessMessage("退出成功");
+    public ServerResponse logout(HttpSession session) {
+        session.removeAttribute(Const.USER);
+        return ServerResponse.createBySuccessMessage("退出成功");
     }
 
     @RequestMapping(value = "/forget_password", method = RequestMethod.POST)
-    public ServerResponse forgetPassword(HttpSession session, String username, String answer,String passwordNew){
-        User user = (User)session.getAttribute(Const.USER);
-        if (user != null){
+    public ServerResponse forgetPassword(HttpSession session, String username, String answer, String passwordNew) {
+        User user = (User) session.getAttribute(Const.USER);
+        if (user != null) {
             return ServerResponse.createByErrorMessage("请退出当前登录");
         }
-        if (username == null || answer == null || passwordNew == null){
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(),ResponseCode.ARGUMENT_ERROR.getDesc());
+        if (username == null || answer == null || passwordNew == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(), ResponseCode.ARGUMENT_ERROR.getDesc());
         }
         return iUserService.forgetPassword(username, answer, passwordNew);
     }
 
-    @RequestMapping(value = "/update_password", method = RequestMethod.POST)
-    public ServerResponse updatePassword(HttpSession session, String passwordOld, String passwordNew){
+    @RequestMapping(value = "/update_password")
+    public ServerResponse updatePassword(HttpSession session, String passwordOld, String passwordNew) {
         User user = (User) session.getAttribute(Const.USER);
-        if (user == null){
+        if (user == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
         }
-        return iUserService.updatePassword(user.getUsername(),passwordOld,passwordNew);
+        return iUserService.updatePassword(user.getUsername(), passwordOld, passwordNew);
     }
 
-    @RequestMapping(value = "/add_user", method = RequestMethod.POST)
-    public ServerResponse addUser(HttpSession session, User user){
-        User userItem = (User) session.getAttribute(Const.USER);
-        if (userItem == null){
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
-        }
-        if (userItem.getRole() == Const.Role.ROLE_CUSTOMER){
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
-        }
+
+
+    //    @RequestMapping(value = "/add_user")
+    @PostMapping
+    public ServerResponse addUser(@RequestBody User user) {
+//        User userItem = (User) session.getAttribute(Const.USER);
+//        if (userItem == null) {
+//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+//        }
+//        if (userItem.getRole() == Const.Role.ROLE_CUSTOMER) {
+//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
+//        }
+//        return iUserService.addUser(user);
         return iUserService.addUser(user);
     }
 
-    @RequestMapping(value = "/del_user", method = RequestMethod.POST)
-    public ServerResponse delUser(HttpSession session, String username){
+    @RequestMapping(value = "/del_user")
+    public ServerResponse delUser(HttpSession session, String username) {
         User userItem = (User) session.getAttribute(Const.USER);
-        if (userItem.getUsername() == username){
+        if (userItem.getUsername() == username) {
             return ServerResponse.createBySuccessMessage("无法删除自己");
         }
-        if (userItem == null){
+        if (userItem == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
         }
-        if (userItem.getRole() == Const.Role.ROLE_CUSTOMER){
+        if (userItem.getRole() == Const.Role.ROLE_CUSTOMER) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
         }
         return iUserService.delUser(username);
     }
-    @RequestMapping(value = "/get_users", method = RequestMethod.POST)
-    public ServerResponse getUsers(HttpSession session){
-        User user = (User)session.getAttribute(Const.USER);
-        if (user == null){
-            return ServerResponse.createByErrorMessage("用户未登录");
-        }
-        if (user.getRole() == Const.Role.ROLE_CUSTOMER){
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
-        }
+
+    @RequestMapping(value = "/get_users")
+    public ServerResponse getUsers(HttpServletRequest request) {
+      String user =  new JwtUtils().getUsernameFromToken(request);
+//        if (user == null) {
+//            return ServerResponse.createByErrorMessage("用户未登录");
+//        }
+//        if (user.getRole() == Const.Role.ROLE_CUSTOMER) {
+//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
+//        }
         return iUserService.getUsers();
     }
 }

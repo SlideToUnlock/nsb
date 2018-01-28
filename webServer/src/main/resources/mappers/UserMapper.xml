@@ -164,6 +164,13 @@
     WHERE username = #{username}
     and password = #{password}
   </select>
+  <select id="findByUsername" resultType="com.nsb.pojo.User">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM user_info
+    WHERE username = #{username}
+  </select>
+
   <select id="checkAnswer" resultType="java.lang.Integer">
     SELECT COUNT(1)
     FROM user_info
