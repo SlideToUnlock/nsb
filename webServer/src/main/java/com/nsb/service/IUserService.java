@@ -11,9 +11,9 @@ import javax.servlet.http.HttpSession;
  */
 public interface IUserService {
 
-    ServerResponse login(String username, String password);
+    ServerResponse login(String username, String password, HttpSession session);
 
-    ServerResponse forgetPassword(String username, String answer , String passwordNew);
+    ServerResponse resetPassword(String username);
 
     ServerResponse updatePassword(String username, String passwordOld, String passwordNew);
 

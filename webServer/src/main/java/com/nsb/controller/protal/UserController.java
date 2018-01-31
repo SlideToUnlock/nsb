@@ -30,38 +30,26 @@ public class UserController {
 
     @Autowired
     private IUserService iUserService;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private UserDetailsService userDetailsService;
 
-    @RequestMapping(value = "/login")
-    public ServerResponse login(String username, String password, HttpSession session) {
-        UsernamePasswordAuthenticationToken upToken = new UsernamePasswordAuthenticationToken(username, MD5Util.MD5EncodeUtf8(password));
-        // Perform the security
-        final Authentication authentication = authenticationManager.authenticate(upToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        final String token = new JwtUtils().generateToken(userDetails);
-        return ServerResponse.createBySuccessToken("登陆成功",token);
+
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public ServerResponse login(HttpSession session, String username, String password) {
+        return iUserService.login(username, password, session);
     }
 
-    @RequestMapping("/logout")
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public ServerResponse logout(HttpSession session) {
         session.removeAttribute(Const.USER);
         return ServerResponse.createBySuccessMessage("退出成功");
     }
 
-    @RequestMapping(value = "/forget_password", method = RequestMethod.POST)
-    public ServerResponse forgetPassword(HttpSession session, String username, String answer, String passwordNew) {
+    @RequestMapping(value = "/reset_password", method = RequestMethod.POST)
+    public ServerResponse forgetPassword(HttpSession session, String username) {
         User user = (User) session.getAttribute(Const.USER);
-        if (user != null) {
-            return ServerResponse.createByErrorMessage("请退出当前登录");
+        if (user.getRole().equals(Const.Role.ROLE_CUSTOMER)) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
         }
-        if (username == null || answer == null || passwordNew == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(), ResponseCode.ARGUMENT_ERROR.getDesc());
-        }
-        return iUserService.forgetPassword(username, answer, passwordNew);
+        return iUserService.resetPassword(username);
     }
 
     @RequestMapping(value = "/update_password")

@@ -1,12 +1,22 @@
 package com.nsb.service.Impl;
 
+import com.nsb.commons.Const;
 import com.nsb.commons.ServerResponse;
 import com.nsb.dao.UserMapper;
 import com.nsb.pojo.User;
 import com.nsb.service.IUserService;
+import com.nsb.util.JwtUtils;
 import com.nsb.util.MD5Util;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * @Author:langxy
@@ -18,24 +28,34 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private UserDetailsService userDetailsService;
 
-    public ServerResponse login(String username, String password){
+    public ServerResponse login(String username, String password, HttpSession session){
         String md5Password = MD5Util.MD5EncodeUtf8(password);
         User user = userMapper.checkLogin(username, md5Password);
         if (user != null){
-            return ServerResponse.createBySuccess("登录成功",user);
+            session.setAttribute(Const.USER, user);
+            UsernamePasswordAuthenticationToken upToken = new UsernamePasswordAuthenticationToken(username, MD5Util.MD5EncodeUtf8(password));
+            // Perform the security
+            final Authentication authentication = authenticationManager.authenticate(upToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            final String token = new JwtUtils().generateToken(userDetails);
+            return ServerResponse.createBySuccessToken("登陆成功",token);
         }
         return ServerResponse.createByErrorMessage("用户名或者密码错误");
     }
 
-    public ServerResponse forgetPassword(String username, String answer , String passwordNew){
-        int rowCount = userMapper.checkAnswer(username, answer);
+    public ServerResponse resetPassword(String username){
+        String md5Password = MD5Util.MD5EncodeUtf8("123456");
+        int rowCount = userMapper.resetPassword(username, md5Password);
         if (rowCount > 0){
-            String md5Password = MD5Util.MD5EncodeUtf8(passwordNew);
-            userMapper.resetPassword(username, answer, md5Password);
             return ServerResponse.createBySuccessMessage("重置密码成功");
         }
-        return ServerResponse.createByErrorMessage("用户名或者密码输入错误");
+        return ServerResponse.createByErrorMessage("重置密码失败");
     }
 
     public ServerResponse updatePassword(String username, String passwordOld, String passwordNew){

@@ -1,6 +1,7 @@
 package com.nsb.commons;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
@@ -11,7 +12,8 @@ import java.io.Serializable;
  */
 
 //保证序列化json的时候，如果是null的对象，key也会消失
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonSerialize
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServerResponse<T> implements Serializable {
 
     private int status;
