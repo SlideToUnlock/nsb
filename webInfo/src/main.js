@@ -11,7 +11,8 @@ Vue.config.productionTip = false
 Vue.config.devtools = true
 
 Vue.prototype.$http = axios.create({
-  baseURL: 'http://localhost:8080/'
+  baseURL: 'http://localhost:8080/',
+  headers: {'Authorization': 'Bearer ' + localStorage.getItem('jwt-token')}
 })
 
 router.beforeEach((to, from, next) => {

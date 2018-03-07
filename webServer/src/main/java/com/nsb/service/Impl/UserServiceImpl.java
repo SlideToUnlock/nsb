@@ -28,15 +28,15 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("用户名或者密码错误");
     }
 
-    public ServerResponse forgetPassword(String username, String answer , String passwordNew){
-        int rowCount = userMapper.checkAnswer(username, answer);
-        if (rowCount > 0){
-            String md5Password = MD5Util.MD5EncodeUtf8(passwordNew);
-            userMapper.resetPassword(username, answer, md5Password);
-            return ServerResponse.createBySuccessMessage("重置密码成功");
-        }
-        return ServerResponse.createByErrorMessage("用户名或者密码输入错误");
-    }
+//    public ServerResponse forgetPassword(String username, String answer , String passwordNew){
+//        int rowCount = userMapper.checkAnswer(username, answer);
+//        if (rowCount > 0){
+//            String md5Password = MD5Util.MD5EncodeUtf8(passwordNew);
+//            userMapper.resetPassword(username, answer, md5Password);
+//            return ServerResponse.createBySuccessMessage("重置密码成功");
+//        }
+//        return ServerResponse.createByErrorMessage("用户名或者密码输入错误");
+//    }
 
     public ServerResponse updatePassword(String username, String passwordOld, String passwordNew){
         String md5PasswordOld = MD5Util.MD5EncodeUtf8(passwordOld);
@@ -71,5 +71,13 @@ public class UserServiceImpl implements IUserService {
 
     public ServerResponse getUsers(){
         return ServerResponse.createBySuccess("获取用户列表成功", userMapper.getUsers());
+    }
+    public ServerResponse resetPassword(String username){
+        String md5Password = MD5Util.MD5EncodeUtf8("123456");
+        int rowCount = userMapper.resetPassword(username, md5Password);
+        if (rowCount > 0){
+            return ServerResponse.createBySuccessMessage("重置密码成功");
+        }
+        return ServerResponse.createByErrorMessage("重置密码失败");
     }
 }

@@ -35,7 +35,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.userDetailsService = userDetailsService;
         this.md5PasswordEncoder = md5PasswordEncoder;
         this.jwtAuthenticationTokenFilter = jwtAuthenticationFilter;
-
     }
 
     @Override
@@ -54,10 +53,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(this.jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers().cacheControl();
-
-
     }
-
     private UserDetailsService userDetailsService;
     private Md5PasswordEncoder md5PasswordEncoder;
 
@@ -65,5 +61,4 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(md5PasswordEncoder);
     }
-
 }

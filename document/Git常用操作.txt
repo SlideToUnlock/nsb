@@ -1,0 +1,39 @@
+﻿更新操作:
+git fetch //获取最新源码
+git stash //保存本地文件的改动
+git rebase origin/master //更新至最新版本
+git stash pop //恢复本地文件的改动
+
+如果遇到文件冲突，则先解决冲突，然后：
+git status //查看改动过的文件
+git add -u 文件路径 //文件路径可从上一步获得
+
+git fetch
+git stash
+git rebase origin/master
+git stash pop
+
+
+git fetch
+git stash
+git rebase origin/master
+解决冲突
+git add 冲突文件路径
+git rebase --continue
+git stash pop
+
+服务器：123->12345
+
+a:
+1239
+
+git stash //123
+git rebase origin/master //12345
+git stash pop //123945
+
+git status //查看改动过的文件
+git add -u 文件路径 //文件路径可从上一步获得
+
+b:
+12345
+

@@ -3,6 +3,7 @@ package com.nsb.controller.protal;
 import com.nsb.commons.Const;
 import com.nsb.commons.ResponseCode;
 import com.nsb.commons.ServerResponse;
+import com.nsb.dao.UserMapper;
 import com.nsb.pojo.User;
 import com.nsb.service.IUserService;
 import com.nsb.util.JwtUtils;
@@ -34,6 +35,8 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private UserDetailsService userDetailsService;
+    @Autowired
+    private UserMapper userMapper;
 
     @RequestMapping(value = "/login")
     public ServerResponse login(String username, String password, HttpSession session) {
@@ -43,7 +46,7 @@ public class UserController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         final String token = new JwtUtils().generateToken(userDetails);
-        return ServerResponse.createBySuccessToken("登陆成功",token);
+        return ServerResponse.createBySuccessToken("登陆成功", token);
     }
 
     @RequestMapping("/logout")
@@ -52,16 +55,26 @@ public class UserController {
         return ServerResponse.createBySuccessMessage("退出成功");
     }
 
-    @RequestMapping(value = "/forget_password", method = RequestMethod.POST)
-    public ServerResponse forgetPassword(HttpSession session, String username, String answer, String passwordNew) {
-        User user = (User) session.getAttribute(Const.USER);
-        if (user != null) {
-            return ServerResponse.createByErrorMessage("请退出当前登录");
+//    @RequestMapping(value = "/forget_password", method = RequestMethod.POST)
+//    public ServerResponse forgetPassword(HttpSession session, String username, String answer, String passwordNew) {
+//        User user = (User) session.getAttribute(Const.USER);
+//        if (user != null) {
+//            return ServerResponse.createByErrorMessage("请退出当前登录");
+//        }
+//        if (username == null || answer == null || passwordNew == null) {
+//            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(), ResponseCode.ARGUMENT_ERROR.getDesc());
+//        }
+//        return iUserService.forgetPassword(username, answer, passwordNew);
+//    }
+
+    @RequestMapping(value = "/reset_password")
+    public ServerResponse forgetPassword(HttpServletRequest request, String username) {
+        String userItem = new JwtUtils().getUsernameFromToken(request);
+        User user = userMapper.findByUsername(userItem);
+        if (user.getRole().equals(Const.Role.ROLE_CUSTOMER)) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
         }
-        if (username == null || answer == null || passwordNew == null) {
-            return ServerResponse.createByErrorCodeMessage(ResponseCode.ARGUMENT_ERROR.getCode(), ResponseCode.ARGUMENT_ERROR.getDesc());
-        }
-        return iUserService.forgetPassword(username, answer, passwordNew);
+        return iUserService.resetPassword(username);
     }
 
     @RequestMapping(value = "/update_password")
@@ -74,25 +87,28 @@ public class UserController {
     }
 
 
-
     //    @RequestMapping(value = "/add_user")
-    @PostMapping
-    public ServerResponse addUser(@RequestBody User user) {
-//        User userItem = (User) session.getAttribute(Const.USER);
-//        if (userItem == null) {
-//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
-//        }
-//        if (userItem.getRole() == Const.Role.ROLE_CUSTOMER) {
-//            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
-//        }
-//        return iUserService.addUser(user);
+    @PostMapping(value = "/addUser")
+    public ServerResponse addUser(@RequestBody User user,HttpServletRequest request) {
+        // 当前登录用户
+        String users = new JwtUtils().getUsernameFromToken(request);
+        User userItem = userMapper.findByUsername(users);
+        if (userItem == null) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+        }
+        if (userItem.getRole() == Const.Role.ROLE_CUSTOMER) {
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_PERMISSION.getCode(), ResponseCode.NEED_PERMISSION.getDesc());
+        }
         return iUserService.addUser(user);
     }
 
     @RequestMapping(value = "/del_user")
-    public ServerResponse delUser(HttpSession session, String username) {
-        User userItem = (User) session.getAttribute(Const.USER);
-        if (userItem.getUsername() == username) {
+    public ServerResponse delUser(HttpServletRequest request, String username) {
+        // 当前登录用户
+        String user = new JwtUtils().getUsernameFromToken(request);
+
+        User userItem = userMapper.findByUsername(user);
+        if (user == username) {
             return ServerResponse.createBySuccessMessage("无法删除自己");
         }
         if (userItem == null) {
@@ -106,7 +122,7 @@ public class UserController {
 
     @RequestMapping(value = "/get_users")
     public ServerResponse getUsers(HttpServletRequest request) {
-      String user =  new JwtUtils().getUsernameFromToken(request);
+        String user = new JwtUtils().getUsernameFromToken(request);
 //        if (user == null) {
 //            return ServerResponse.createByErrorMessage("用户未登录");
 //        }

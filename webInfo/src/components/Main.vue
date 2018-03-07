@@ -66,34 +66,37 @@
   <div class="layout" :class="{'layout-hide-text': spanLeft < 5}">
     <Row type="flex">
       <Col :span="spanLeft" class="layout-menu-left">
-        <Menu active-name="1-2" theme="dark" width="auto" :open-names="['1']">
-          <div class="layout-logo-left"></div>
-            <router-link to="/">
-              <Menu-item name="1">
-                <Icon type="ios-monitor-outline" :size="iconSize"></Icon>
-                <span class="layout-text">未分组电脑</span>
-              </Menu-item>
-            </router-link>
-          <Submenu name="2">
-            <template slot="title">
+      <Menu active-name="1-2" theme="dark" width="auto" :open-names="['1']">
+        <div class="layout-logo-left"></div>
+        <router-link to="/">
+          <Menu-item name="1">
+            <Icon type="ios-monitor-outline" :size="iconSize"></Icon>
+            <span class="layout-text">未分组电脑</span>
+          </Menu-item>
+        </router-link>
+        <Submenu name="2">
+          <template slot="title">
+            <Icon type="android-desktop" :size="iconSize"></Icon>
+            <span class="layout-text">机房分组</span>
+          </template>
+          <router-link v-for="room in roomList" :key="room.id" :to="{name: 'room', params: { roomId: room }}">
+            <Menu-item :name="name - room">
               <Icon type="android-desktop" :size="iconSize"></Icon>
-              <span class="layout-text">机房分组</span>
-            </template>
-            <router-link v-for="room in roomList" :key="room.id" :to="{name: 'room', params: { roomId: room }}">
-              <Menu-item :name="name - room">
-                <Icon type="android-desktop" :size="iconSize"></Icon>{{room}} 机房
-              </Menu-item>
-            </router-link>
-          </Submenu>
-          <Submenu name="2">
-            <template slot="title">
-              <Icon type="ios-keypad" :size="iconSize"></Icon>
-              <span class="layout-text">用户</span>
-            </template>
-            <router-link :to="{path: '/userList'}"><Menu-item name="2-1">用户列表</Menu-item></router-link>
-            <!--<router-link :to="{path: '/'}"><Menu-item name="2-2">用户2</Menu-item></router-link>-->
-          </Submenu>
-        </Menu>
+              {{room}} 机房
+            </Menu-item>
+          </router-link>
+        </Submenu>
+        <Submenu name="2">
+          <template slot="title">
+            <Icon type="ios-keypad" :size="iconSize"></Icon>
+            <span class="layout-text">用户</span>
+          </template>
+          <router-link :to="{path: '/userList'}">
+            <Menu-item name="2-1">用户列表</Menu-item>
+          </router-link>
+          <!--<router-link :to="{path: '/'}"><Menu-item name="2-2">用户2</Menu-item></router-link>-->
+        </Submenu>
+      </Menu>
       </Col>
       <Col :span="spanRight">
       <div class="main-header">
@@ -116,9 +119,31 @@
                   <Icon type="arrow-down-b"></Icon>
                 </a>
                 <DropdownMenu slot="list">
+                  <DropdownItem name="changePwd" @click="changePwd = true">修改密码</DropdownItem>
                   <DropdownItem name="loginout" divided>退出登录</DropdownItem>
                 </DropdownMenu>
               </Dropdown>
+              <Modal
+                v-model="changePwd"
+                title="添加新用户">
+                <Form :model="formRight" label-position="right" :label-width="100">
+                  <FormItem label="用户名：">
+                    <Input v-model="formRight.username"></Input>
+                  </FormItem>
+                  <FormItem label="实名：">
+                    <Input v-model="formRight.name"></Input>
+                  </FormItem>
+                  <FormItem label="密码：">
+                    <Input type="password" v-model="formRight.password"></Input>
+                  </FormItem>
+                  <FormItem label="角色：">
+                    <Select v-model="formRight.role">
+                      <Option value="1">管理员</Option>
+                      <Option value="0">普通用户</Option>
+                    </Select>
+                  </FormItem>
+                </Form>
+              </Modal>
               <Avatar :src="avatorPath" style="background: #619fe7;margin-left: 10px;"></Avatar>
             </Row>
           </div>
@@ -142,6 +167,13 @@
   export default {
     data () {
       return {
+        formRight: {
+          username: '',
+          name: '',
+          password: '',
+          role: ''
+        },
+        changePwd: false,
         spanLeft: 5,
         spanRight: 19,
         userName: '',
@@ -172,8 +204,12 @@
       },
       handleClickUserDropdown (name) {
         if (name === 'loginout') {
+          Cookies.remove('user')
+          Cookies.remove('password')
+          Cookies.remove('hasGreet')
+          Cookies.remove('access')
           this.$http.get('/user/logout').then(res => {
-            if (res.data.code === 0) {
+            if (res.data.status === 0) {
               this.$Message.success(res.data.msg)
               // 退出登录
               Cookies.remove('user')
@@ -187,6 +223,9 @@
               this.$Message.error(res.data.msg)
             }
           })
+        } else {
+          console.log('lius')
+          this.changePwd = true
         }
       }
     }

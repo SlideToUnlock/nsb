@@ -59,11 +59,17 @@
         this.$refs.loginForm.validate((valid) => {
           if (valid) {
             // 发起ajax请求
-            this.$http.get('/user/login', {params: {'username': this.form.userName, 'password': this.form.password}}).then(response => {
-              if (response.data.code === 0) {
+            this.$http.get('/user/login', {
+              params: {
+                username: this.form.userName,
+                password: this.form.password
+              }
+            }).then(response => {
+              if (response.data.status === 0) {
                 this.$Message.success(response.data.msg)
                 Cookies.set('user', this.form.userName)
                 Cookies.set('password', this.form.password)
+                localStorage.setItem('jwt-token', response.data.token)
                 this.$router.push({name: 'main'})
               } else {
                 this.$Message.error(response.data.msg)

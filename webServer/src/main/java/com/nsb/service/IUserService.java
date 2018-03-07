@@ -13,13 +13,15 @@ public interface IUserService {
 
     ServerResponse login(String username, String password);
 
-    ServerResponse forgetPassword(String username, String answer , String passwordNew);
+//    ServerResponse forgetPassword(String username, String answer , String passwordNew);
 
     ServerResponse updatePassword(String username, String passwordOld, String passwordNew);
 
     ServerResponse addUser(User user);
 
     ServerResponse delUser(String username);
+
+    ServerResponse resetPassword(String username);
 
     ServerResponse getUsers();
 
